@@ -1,0 +1,61 @@
+name: Lint and test
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+jobs:
+  quality:
+    runs-on: windows-latest
+    steps:
+      - name: Check out
+        uses: actions/checkout@v4
+
+      - name: Install modules
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          Install-PSResource -Name PSScriptAnalyzer -Scope CurrentUser -TrustRepository
+          Install-PSResource -Name Pester -Scope CurrentUser -TrustRepository
+          if (Test-Path ./requirements.psd1) {
+              $manifest = Import-PowerShellDataFile ./requirements.psd1
+              foreach ($module in $manifest.RequiredModules) {
+                  if ($module.ModuleName -in 'PSScriptAnalyzer', 'Pester') { continue }
+                  Install-PSResource -Name $module.ModuleName -Version $module.ModuleVersion -Scope CurrentUser -TrustRepository
+              }
+          }
+
+      - name: Run PSScriptAnalyzer
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $issues = Invoke-ScriptAnalyzer -Path ./scripts `
+              -Settings ./PSScriptAnalyzerSettings.psd1 `
+              -Recurse
+          if ($issues) {
+              $issues | Format-Table -AutoSize RuleName, Severity, ScriptPath, Line, Message
+              throw "$($issues.Count) PSScriptAnalyzer finding(s). See details above."
+          }
+          Write-Host "PSScriptAnalyzer: 0 findings."
+
+      - name: Run Pester
+        shell: pwsh
+        run: |
+          $ErrorActionPreference = 'Stop'
+          $config = New-PesterConfiguration
+          $config.Run.Path = './tests'
+          $config.Run.Exit = $true
+          $config.Output.Verbosity = 'Detailed'
+          $config.TestResult.Enabled = $true
+          $config.TestResult.OutputPath = './output/testResults.xml'
+          if (-not (Test-Path ./output)) { New-Item -ItemType Directory -Path ./output | Out-Null }
+          Invoke-Pester -Configuration $config
+
+      - name: Upload test results
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-results
+          path: ./output/testResults.xml
+          if-no-files-found: ignore

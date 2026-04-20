@@ -1,0 +1,48 @@
+# PowerShell
+*.log
+PowerShellSecureString.txt
+PSReadLine/
+
+# Secrets — belt and suspenders, never commit these even by accident
+.env
+.env.*
+*.secret
+*.credential
+*.pfx
+*.p12
+secrets/
+credentials/
+
+# Output directory — everything in there is generated
+output/*
+!output/.gitignore
+
+# Local-only data — sample CSVs in data/ are allowed; real data is not
+data/*
+!data/.gitignore
+!data/*.sample.csv
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# Editor caches
+.vs/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+.idea/
+
+# VS Code — commit settings.json and extensions.json, ignore everything else
+.vscode/*
+!.vscode/settings.json
+!.vscode/extensions.json
+
+# Test output
+output/testResults.xml
+output/coverage.xml
+
+# Pester temp
+.pester/

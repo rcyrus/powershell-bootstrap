@@ -1,0 +1,55 @@
+#Requires -Modules Pester
+
+BeforeAll {
+    $scriptPath = Join-Path $PSScriptRoot '..' 'scripts' '{{FIRST_SCRIPT}}.ps1'
+    if (Test-Path $scriptPath) {
+        . $scriptPath
+    }
+}
+
+Describe '{{FIRST_SCRIPT}}' {
+
+    Context 'script file exists' {
+        It 'has a PowerShell script file' {
+            $scriptPath = Join-Path $PSScriptRoot '..' 'scripts' '{{FIRST_SCRIPT}}.ps1'
+            Test-Path $scriptPath | Should -BeTrue
+        }
+
+        It 'declares a required PS version' {
+            $scriptPath = Join-Path $PSScriptRoot '..' 'scripts' '{{FIRST_SCRIPT}}.ps1'
+            $content = Get-Content $scriptPath -Raw
+            $content | Should -Match '#Requires -Version 7'
+        }
+
+        It 'sets strict mode' {
+            $scriptPath = Join-Path $PSScriptRoot '..' 'scripts' '{{FIRST_SCRIPT}}.ps1'
+            $content = Get-Content $scriptPath -Raw
+            $content | Should -Match 'Set-StrictMode -Version Latest'
+        }
+
+        It 'sets ErrorActionPreference to Stop' {
+            $scriptPath = Join-Path $PSScriptRoot '..' 'scripts' '{{FIRST_SCRIPT}}.ps1'
+            $content = Get-Content $scriptPath -Raw
+            $content | Should -Match "\`$ErrorActionPreference\s*=\s*'Stop'"
+        }
+    }
+
+    # Context 'parameter validation' {
+    #     It 'rejects an unknown region' {
+    #         { Get-Example -Region 'antarctica' } | Should -Throw
+    #     }
+    # }
+
+    # Context 'output shape' {
+    #     BeforeAll {
+    #         Mock Invoke-RestMethod {
+    #             @([PSCustomObject]@{ hostname = 'test-01' })
+    #         }
+    #     }
+    #
+    #     It 'returns one object per device' {
+    #         $result = Get-Example -Region us-east
+    #         $result.Count | Should -Be 1
+    #     }
+    # }
+}

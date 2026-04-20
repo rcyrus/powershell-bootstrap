@@ -1,0 +1,10 @@
+# Ignore everything in this directory by default. Real data never gets committed.
+*
+
+# Except:
+!.gitignore
+
+# And except sample/fixture files — these are sanitized examples safe to commit.
+!*.sample.csv
+!*.sample.json
+!*.sample.yaml

@@ -1,0 +1,98 @@
+# AGENTS.md — {{PROJECT_NAME}}
+
+This file is the entry point for any AI agent working in this repository. Humans read `README.md` first. Agents read this first.
+
+## What this project is
+
+{{PROJECT_DESCRIPTION}}
+
+Primary entry point: `scripts/{{FIRST_SCRIPT}}.ps1`. Run with `-?` for parameters.
+
+## Runtime
+
+- PowerShell 7.4 or higher. The `#Requires -Version` line in every script enforces this.
+- Windows is the primary target. Scripts should also run on PowerShell 7 on macOS and Linux where the logic permits.
+- All external command invocations assume `$PSNativeCommandArgumentPassing = 'Standard'`.
+
+## Conventions
+
+- **Function shape.** Every advanced function uses `[CmdletBinding()]` and a typed `param()` block with `[Parameter(Mandatory)]` where appropriate and a validation attribute on every bounded parameter (`ValidateSet`, `ValidateRange`, `ValidateScript`).
+- **Script headers.** Every executable script starts with `Set-StrictMode -Version Latest` and `$ErrorActionPreference = 'Stop'`.
+- **Comment-based help.** Every public function has `.SYNOPSIS`, `.DESCRIPTION`, `.PARAMETER`, and `.EXAMPLE` sections. Copilot reads these. `Get-Help` reads these.
+- **Output.** Use `Write-Verbose` and `Write-Information` for structured output. Never `Write-Host` in a function body. `Write-Host` is allowed only in interactive scripts, and only for prompts that will never run unattended.
+- **Paths.** `Join-Path` for every composed path. Never string concatenation with `\` or `/`.
+- **CSV handling.** `Import-Csv` and `Export-Csv`. Never manual string parsing.
+- **HTTP.** `Invoke-RestMethod` by default. `Invoke-WebRequest` only when you explicitly need the raw response.
+- **JSON.** `ConvertFrom-Json` and `ConvertTo-Json -Depth N`. Always set `-Depth` explicitly. Default depth of 2 silently drops nested data.
+
+## Dependencies
+
+All module dependencies are declared in `requirements.psd1` at the repo root. Install them with:
+
+```powershell
+$manifest = Import-PowerShellDataFile ./requirements.psd1
+foreach ($module in $manifest.RequiredModules) {
+    Install-PSResource -Name $module.ModuleName -Version $module.ModuleVersion -Scope CurrentUser
+}
+```
+
+Never hand-edit `requirements.psd1`. Use `Install-PSResource` to add a dependency, then update the manifest. Agents adding dependencies on behalf of a user should state which module they are adding and why.
+
+## Secrets
+
+Secrets come from `Microsoft.PowerShell.SecretManagement` bound to Azure Key Vault. Calling code uses `Get-Secret -Name '<secret-name>'`. There is no other path.
+
+- Never hardcode a credential.
+- Never read a credential from an environment variable.
+- Never prompt the user at runtime with `Get-Credential` in a script intended for automation.
+- Never log, print, or include a credential in an exception message.
+
+See the `references/secrets-management.md` reference in the `powershell-bootstrap` skill for the full pattern.
+
+## Green-before-done
+
+Before declaring any task complete in this repository, run all three from the project root:
+
+```powershell
+Invoke-ScriptAnalyzer -Path ./scripts -Settings ./PSScriptAnalyzerSettings.psd1 -Recurse
+Invoke-Pester ./tests -Output Detailed
+git status
+```
+
+- `Invoke-ScriptAnalyzer` must report zero `Error` and zero `Warning` findings.
+- `Invoke-Pester` must show every test passing.
+- `git status` must show a clean tree or a staged commit about to land.
+
+If any of those is not green, the task is not done. Surface the failure. Do not claim completion.
+
+## Data handling
+
+- Sample input lives in `data/` with the filename pattern `*.sample.csv`. These files are committed.
+- Real input data is never committed. The `data/.gitignore` enforces this.
+- Script output goes to `output/`. Everything in `output/` is gitignored.
+
+## Testing
+
+- Tests live in `tests/`. One file per script, matching the script name: `Get-Foo.ps1` has `Get-Foo.Tests.ps1`.
+- Tests are Pester 5.x.
+- Mock external calls (`Invoke-RestMethod`, `Get-Secret`, SSH commands). Do not mock the thing you are testing.
+- Fixtures live in `tests/fixtures/`.
+- See the `testing-with-pester.md` reference in the `powershell-bootstrap` skill for patterns.
+
+## What NOT to do in this repo
+
+- Do not commit `.ps1` files outside `scripts/`.
+- Do not commit real data to `data/`. Sanitize first.
+- Do not add `Write-Host` to library functions. Reviewers will ask it to be removed.
+- Do not bypass PSScriptAnalyzer with blanket `[SuppressMessageAttribute]` annotations. Narrow the suppression to the specific rule and the specific reason, and add a comment.
+- Do not author Windows PowerShell 5.1 fallbacks in new code.
+- Do not introduce aliases (`ls`, `?`, `%`) in committed code.
+
+## Level 2 promotion
+
+When this project is ready to move from a personal repo to a team repo, consult the `level-2-boost.md` reference. The promotion path and the branch-protection settings are documented there.
+
+## Author
+
+- Created by: {{AUTHOR_NAME}}
+- Scaffold: `powershell-bootstrap` skill, version 1.0

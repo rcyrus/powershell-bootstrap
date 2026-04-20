@@ -1,0 +1,34 @@
+# Changelog
+
+All notable changes to {{PROJECT_NAME}} are logged here.
+
+Format follows [Keep a Changelog](https://keepachangelog.com/en/1.1.0/). Versions follow [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [Unreleased]
+
+### Added
+- Initial scaffold via `powershell-bootstrap` skill.
+- First script: `scripts/{{FIRST_SCRIPT}}.ps1`.
+- Sample input at `data/devices.sample.csv`.
+- Pester test skeleton at `tests/{{FIRST_SCRIPT}}.Tests.ps1`.
+- GitHub Actions lint-and-test workflow.
+- PSScriptAnalyzer settings at repo root.
+- AGENTS.md and Copilot-specific pointer.
+
+### Changed
+
+### Deprecated
+
+### Removed
+
+### Fixed
+
+### Security
+
+---
+
+## Conventions for adding entries
+
+- Every PR that changes behavior adds one entry to this file under `[Unreleased]`.
+- Categorize the entry: `Added`, `Changed`, `Deprecated`, `Removed`, `Fixed`, `Security`.
+- At release time, move `[Unreleased]` entries under a new version heading and tag the commit.

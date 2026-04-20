@@ -1,0 +1,67 @@
+# Runbook — {{PROJECT_NAME}}
+
+Operational reference for {{PROJECT_NAME}}. This file answers "how do I run this" and "what do I do when it breaks." It is not how-to-code. Code-level detail lives in `AGENTS.md`.
+
+## What this script does
+
+{{PROJECT_DESCRIPTION}}
+
+## Expected runtime
+
+- **Duration.** Fill in once measured. Wall-clock time on a full input.
+- **Input size assumed.** Rows in the CSV, devices in the list, etc.
+- **Resource profile.** Laptop-sufficient, or requires a server?
+
+## Inputs
+
+| Input | Source | Format | Notes |
+|---|---|---|---|
+| Device list | `data/devices.sample.csv` (sample), Infoblox export (real) | CSV | Required columns: Hostname, Region. Additional columns ignored. |
+
+## Outputs
+
+| Output | Destination | Format | Notes |
+|---|---|---|---|
+| Stale records report | `output/stale-records.csv` | CSV | Overwritten on every run. Move to an archive location if you need historical copies. |
+
+## Secrets this script uses
+
+| Secret name | Used for | Expected rotation |
+|---|---|---|
+| `device-readonly-credential` | SSH to target devices | Quarterly, rotated by IAM. |
+| `inventory-api-token` | Query the inventory API | Monthly, auto-rotated via Beyond Trust sync. |
+
+All secrets retrieved with `Get-Secret`. If a call fails, the secret is not bound on the current machine — see the secrets-management reference in the `powershell-bootstrap` skill.
+
+## How to run
+
+```powershell
+./scripts/{{FIRST_SCRIPT}}.ps1 -InputFile ./data/devices.sample.csv -OutputPath ./output/stale-records.csv
+```
+
+For real runs, replace the `-InputFile` argument with the path to the actual device list export. Do not commit the real file; `data/.gitignore` should prevent accidents.
+
+## Known failure modes
+
+| Symptom | Likely cause | Fix |
+|---|---|---|
+| `Get-Secret: secret not found` | SecretManagement vault not registered on this machine | Follow the bootstrap steps in `references/secrets-management.md`. |
+| `New-SSHSession: connection refused` | Device unreachable from current network | Confirm VPN or bastion connection. Script will skip the device after timeout. |
+| Many `status=unknown` in output | Authentication failed on most devices | Check the credential's expiry. Pull the latest from Beyond Trust sync. |
+| Script hangs on `Read-Host` pause | Running in a non-interactive context | Do not run inside CI or AWX. At L2+, remove the pause and add a `-Force` switch instead. |
+| PSScriptAnalyzer fails locally | Settings file missing or different | Confirm `PSScriptAnalyzerSettings.psd1` at repo root. Pull latest from `main`. |
+
+## When this runs on Rung 3 (scheduled, in a runner)
+
+If this script is later scheduled to run in AWX or GitHub Actions:
+
+- The `Read-Host` interactive pause must be removed. Replace with `[Parameter()][switch]$Force` and guard the destructive step.
+- Every `Write-Host` call must be reviewed. Output capture in runners does not always render `Write-Host` output.
+- Credentials retrieved via the runner's identity, not the author's identity.
+- Failure notifications go to the job's notification channel, not to the script author personally.
+
+## Ownership
+
+- **Primary author:** {{AUTHOR_NAME}}
+- **On-call:** Fill in when promoted to team ownership. Remove personal author as sole owner.
+- **Team repo:** Link to the team-owned repository once promoted.

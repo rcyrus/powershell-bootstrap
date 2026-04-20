@@ -1,0 +1,41 @@
+# GitHub Copilot Instructions for {{PROJECT_NAME}}
+
+Copilot reads this file automatically when generating code in this repository. It points at `AGENTS.md` at the repo root — the same content in one authoritative place.
+
+## Read AGENTS.md first
+
+Before suggesting code in this repository, read `AGENTS.md` at the repo root. It contains:
+
+- The PowerShell version target.
+- The function and script conventions.
+- The output discipline (`Write-Verbose` over `Write-Host`).
+- The dependency declaration rules.
+- The secrets-handling rules.
+- The green-before-done quality bar.
+
+If any suggestion you make would violate those conventions, do not make the suggestion.
+
+## Repository-specific shortcuts for Copilot
+
+- Every function uses `[CmdletBinding()]` and typed `param()` with validation attributes.
+- Every script starts with `Set-StrictMode -Version Latest` and `$ErrorActionPreference = 'Stop'`.
+- Every credential comes from `Get-Secret`. There is no other path.
+- Every new dependency is added to `requirements.psd1`. Do not `Install-Module` in a script body.
+- Every new script in `scripts/` has a matching test file in `tests/`.
+
+## What to avoid
+
+- Windows PowerShell 5.1-only syntax. This project targets PS 7.4+.
+- `Write-Host` in function bodies.
+- Hardcoded paths, credentials, or environment-specific values.
+- Aliases in committed code (`ls`, `?`, `%`, `gci`, `select`).
+- `Invoke-Expression` on any input.
+- Empty `catch` blocks.
+
+## When asked to add a new script
+
+1. Place the script in `scripts/`. Name it with PowerShell verb-noun casing (`Get-Foo`, `Set-Bar`, `Invoke-Baz`).
+2. Add a matching test file in `tests/` named `<ScriptName>.Tests.ps1`.
+3. Declare any new module dependencies in `requirements.psd1`.
+4. Add a `## Added` entry under `[Unreleased]` in `CHANGELOG.md`.
+5. Confirm PSScriptAnalyzer and Pester both report green locally before treating the task as done.

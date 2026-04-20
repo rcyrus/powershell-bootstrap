@@ -1,0 +1,22 @@
+@{
+    # Declared module dependencies for {{PROJECT_NAME}}.
+    # Install all with:
+    #     $m = Import-PowerShellDataFile ./requirements.psd1
+    #     foreach ($mod in $m.RequiredModules) {
+    #         Install-PSResource -Name $mod.ModuleName -Version $mod.ModuleVersion -Scope CurrentUser
+    #     }
+    # Edit this file through `Install-PSResource` + hand edit, or with `Update-ModuleManifest`.
+
+    RequiredModules = @(
+        @{ ModuleName = 'PSScriptAnalyzer';                      ModuleVersion = '1.22.0' }
+        @{ ModuleName = 'Pester';                                ModuleVersion = '5.5.0' }
+        @{ ModuleName = 'Microsoft.PowerShell.SecretManagement'; ModuleVersion = '1.1.2' }
+
+        # Add project-specific modules below this line.
+        # Examples for common tasks:
+        # @{ ModuleName = 'Posh-SSH';                             ModuleVersion = '3.1.0' }   # SSH to network devices
+        # @{ ModuleName = 'ImportExcel';                          ModuleVersion = '7.8.9' }   # Excel without Excel
+        # @{ ModuleName = 'Microsoft.Graph.Authentication';       ModuleVersion = '2.15.0' }  # Entra / Microsoft Graph
+        # @{ ModuleName = 'Az.KeyVault';                          ModuleVersion = '5.2.0' }   # Azure Key Vault access
+    )
+}

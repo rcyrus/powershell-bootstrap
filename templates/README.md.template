@@ -1,0 +1,68 @@
+# {{PROJECT_NAME}}
+
+{{PROJECT_DESCRIPTION}}
+
+## What this does
+
+Short, honest description for a human reader. Include:
+
+- The input the script expects.
+- The output it produces.
+- The systems it touches.
+- The rung it runs on today (see the Runtime Ladder — Rung 1 is "your laptop," Rung 3 is "a job runner").
+
+## Quick start
+
+```powershell
+# 1. Install dependencies
+$manifest = Import-PowerShellDataFile ./requirements.psd1
+foreach ($m in $manifest.RequiredModules) {
+    Install-PSResource -Name $m.ModuleName -Version $m.ModuleVersion -Scope CurrentUser
+}
+
+# 2. Run against the sample CSV
+./scripts/{{FIRST_SCRIPT}}.ps1 -InputFile ./data/devices.sample.csv
+```
+
+## Requirements
+
+- PowerShell 7.4+
+- Modules listed in `requirements.psd1`
+- Access to the secrets vault if you run against real systems (see `AGENTS.md` for the secrets path).
+
+## Project layout
+
+```
+{{PROJECT_NAME}}/
+├── scripts/            # the actual PowerShell
+├── tests/              # Pester tests
+├── data/               # sample CSVs (real data ignored)
+├── output/             # script output (ignored)
+├── docs/               # runbook and operational notes
+├── .github/workflows/  # GitHub Actions CI
+├── .vscode/            # editor config
+├── AGENTS.md           # rules for AI agents working in this repo
+└── requirements.psd1   # declared dependencies
+```
+
+## Running the quality checks
+
+```powershell
+Invoke-ScriptAnalyzer -Path ./scripts -Settings ./PSScriptAnalyzerSettings.psd1 -Recurse
+Invoke-Pester ./tests -Output Detailed
+```
+
+Both must be green before any commit is considered done.
+
+## Operating this script
+
+See `docs/RUNBOOK.md` for:
+
+- Expected runtime.
+- Known failure modes.
+- How to read the output.
+- Who to page if it breaks at 2 AM.
+
+## Author
+
+{{AUTHOR_NAME}}
